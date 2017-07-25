@@ -4,25 +4,57 @@ Lesson 3
 ***
 
 ### What to Do First?
-Notes:
+
+#### Reading in Data
+
+read.delim()函數默認使用製表符作為值之間的分隔符，並使用句點作為十進製字符。
+```{r}
+getwd()
+list.files()
+pf <- read.csv('pseudo_facebook.tsv', sep = '\t')
+pf <- read.delim('pseudo_facebook.tsv')
+```
 
 ***
 
 ### Pseudo-Facebook User Data
-Notes:
 
 ```{r Pseudo-Facebook User Data}
-
+names(pf)
 ```
 
 ***
 
 ### Histogram of Users' Birthdays
-Notes:
 
 ```{r Histogram of Users\' Birthdays}
-install.packages('ggplot2')
+# install.packages('ggplot2')
 library(ggplot2)
+
+qplot(x = dob_day, data = pf)
+
+qplot(x = dob_day, data = pf) + 
+  scale_x_continuous(breaks = 1:31) +
+  theme(text = element_text(size=10))
+
+```
+
+
+```{r ggthems}
+# install.packages('ggthemes', dependencies = TRUE)
+library(ggthemes)
+
+ggplot(aes(x = dob_day), data = pf) + 
+  geom_histogram(binwidth = 1) + 
+  scale_x_continuous(breaks = 1:31) + 
+  theme_minimal() +
+  theme(text = element_text(size=10))
+
+ggplot(aes(x = dob_day), data = pf) + 
+  geom_histogram(binwidth = 1) + 
+  scale_x_continuous(breaks = 1:31) + 
+  theme_set(theme_minimal(24)) +
+  theme(text = element_text(size=10))
 ```
 
 ***
@@ -58,10 +90,21 @@ Notes:
 
 ***
 ### Faceting
-Notes:
+
+facet_wrap(~variable)
+facet_grid(vertical ~ horizontal)
 
 ```{r Faceting}
+qplot(x = dob_day, data = pf) + 
+  scale_x_continuous(breaks = 1:31) + 
+  facet_wrap(~dob_month, ncol = 3) +
+  theme(text = element_text(size=10))
 
+ggplot(aes(x = dob_day), data = pf) + 
+  geom_histogram(binwidth = 1) + 
+  scale_x_continuous(breaks = 1:31) + 
+  facet_wrap(~dob_month) +
+  theme(text = element_text(size=10))
 ```
 
 #### Let’s take another look at our plot. What stands out to you here?
@@ -87,7 +130,12 @@ Notes:
 #### What code would you enter to create a histogram of friend counts?
 
 ```{r Friend Count}
+qplot(x = friend_count, data = pf) +
+  theme(text = element_text(size=10))
 
+ggplot(aes(x = friend_count), data = pf) + 
+  geom_histogram() +
+  theme(text = element_text(size=10))
 ```
 
 #### How is this plot similar to Moira's first plot?
@@ -96,27 +144,59 @@ Response:
 ***
 
 ### Limiting the Axes
-Notes:
 
 ```{r Limiting the Axes}
+qplot(x = friend_count, data = pf, xlim = c(0, 1000)) +
+  theme(text = element_text(size=10))
 
+qplot(x = friend_count, data = pf) + 
+  scale_x_continuous(limits = c(0, 1000)) +
+  theme(text = element_text(size=10))
+
+ggplot(aes(x = friend_count), data = pf) + 
+  geom_histogram() + 
+  scale_x_continuous(limits = c(0, 1000)) +
+  theme(text = element_text(size=10))
 ```
 
 ### Exploring with Bin Width
-Notes:
+Notes: 組距默認超過30的範圍
+```stat_bin()``` using ```bins = 30```. Pick better value with ```binwidth```
 
 ***
 
 ### Adjusting the Bin Width
-Notes:
+```{r Adjusting the Bin Width}
+qplot(x = friend_count, data = pf, binwidth = 10) +
+  scale_x_continuous(limits = c(0, 1000),
+                     breaks = seq(0, 1000, 50))
+
+qplot(x = friend_count, data = pf, binwidth = 25) + 
+  scale_x_continuous(limits = c(0, 1000),
+                     breaks = seq(0, 1000, 50))
+
+ggplot(aes(x = friend_count), data = pf) + 
+  geom_histogram(binwidth = 25) + 
+  scale_x_continuous(limits = c(0, 1000),
+                     breaks = seq(0, 1000, 50))
+```
 
 ### Faceting Friend Count
 ```{r Faceting Friend Count}
 # What code would you add to create a facet the histogram by gender?
 # Add it to the code below.
-qplot(x = friend_count, data = pf, binwidth = 10) +
+
+qplot(x = friend_count, data = pf, binwidth = 25) + 
   scale_x_continuous(limits = c(0, 1000),
-                     breaks = seq(0, 1000, 50))
+                     breaks = seq(0, 1000, 50)) + 
+  facet_grid(gender ~ .)
+
+ggplot(aes(x = friend_count), data = pf) + 
+  geom_histogram(binwidth = 25) + 
+  scale_x_continuous(limits = c(0, 1000),
+                     breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
+
 ```
 
 ***

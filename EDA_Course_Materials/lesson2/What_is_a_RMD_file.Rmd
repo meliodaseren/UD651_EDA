@@ -29,11 +29,3 @@ str(mtcars)
 subset(mtcars, mpg >= 30 | hp < 60)
 mtcars[mtcars$mpg >= 30 | mtcars$hp < 60, ]
 ```
-
-
-
-
-
-
-
-

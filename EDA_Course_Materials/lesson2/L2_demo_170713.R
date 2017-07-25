@@ -1,12 +1,18 @@
-# install and load the ggplot package
+# ----- Learn R in swirl ----- #
+# install.packages("swirl") 
+# library(swirl)
+# swirl()
+
+
+# Install and load the ggplot package
 # install.packages('ggplot2')
 library(ggplot2)
 
-# install and load a color package
+# Install and load a color package
 # install.packages('RColorBrewer')
 library(RColorBrewer)
 
-# load the data set
+# Load the data set
 data(diamonds)
 
 diamonds
@@ -15,13 +21,12 @@ diamonds
 qplot(data = diamonds, x = carat, y = price, color = cut) +
   scale_color_brewer(palette = 'Accent')
 
-# install.packages("swirl") 
-library(swirl)
-swirl()
 
 # Subsetting Data
-statesInfo <- read.csv('stateData.csv')
+statesInfo <- read.csv('./UD651_EDA/EDA_Course_Materials/lesson2/stateData.csv')
 View(statesInfo)
+str(statesInfo)
+class(statesInfo)
 
 stateSubset <- subset(statesInfo, state.region == 1)
 head(stateSubset, 2)
@@ -33,7 +38,7 @@ dim(stateSubsetBracket)
 
 # Factor
 # Factor is a categorical variable different flavors or levels to it.
-reddit <- read.csv("reddit.csv")
+reddit <- read.csv("./UD651_EDA/EDA_Course_Materials/lesson2/reddit.csv")
 str(reddit)
 
 table(reddit$employment.status)
