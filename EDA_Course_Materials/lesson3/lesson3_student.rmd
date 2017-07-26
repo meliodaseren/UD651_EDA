@@ -7,11 +7,12 @@ Lesson 3
 
 #### Reading in Data
 
-read.delim()函數默認使用製表符作為值之間的分隔符，並使用句點作為十進製字符。
 ```{r}
 getwd()
 list.files()
 pf <- read.csv('pseudo_facebook.tsv', sep = '\t')
+
+# read.delim()函數默認使用製表符作為值之間的分隔符，並使用句點作為十進製字符。
 pf <- read.delim('pseudo_facebook.tsv')
 ```
 
@@ -37,8 +38,13 @@ qplot(x = dob_day, data = pf) +
   scale_x_continuous(breaks = 1:31) +
   theme(text = element_text(size=10))
 
+# scale_x_discrete() 圖層從 ggplot2 2.0 開始被棄用。改用 scale_x_continuous() 獲得斷點。
+# theme() 設定文字大小
 ```
 
+Notes: 
+很多網站在註冊帳號時會將你的生日默認為1號，甚至1月1號。對於Facebook，他們的默認是1月1日。
+探索數據時，留心這樣的細節非常重要。
 
 ```{r ggthems}
 # install.packages('ggthemes', dependencies = TRUE)
@@ -50,6 +56,7 @@ ggplot(aes(x = dob_day), data = pf) +
   theme_minimal() +
   theme(text = element_text(size=10))
 
+# theme_minimal() 字體大小為24
 ggplot(aes(x = dob_day), data = pf) + 
   geom_histogram(binwidth = 1) + 
   scale_x_continuous(breaks = 1:31) + 
@@ -90,7 +97,6 @@ Notes:
 
 ***
 ### Faceting
-
 facet_wrap(~variable)
 facet_grid(vertical ~ horizontal)
 
@@ -182,39 +188,68 @@ ggplot(aes(x = friend_count), data = pf) +
 ```
 
 ### Faceting Friend Count
+
 ```{r Faceting Friend Count}
 # What code would you add to create a facet the histogram by gender?
-# Add it to the code below.
+# facet_grid()，句點代表數據集中的其他所有變量，這一符號實質上根據性別拆分數據，並且生成三個直方圖，每個圖都有自己的行。
 
 qplot(x = friend_count, data = pf, binwidth = 25) + 
   scale_x_continuous(limits = c(0, 1000),
                      breaks = seq(0, 1000, 50)) + 
-  facet_grid(gender ~ .)
+  facet_grid(.~gender)
 
 ggplot(aes(x = friend_count), data = pf) + 
   geom_histogram(binwidth = 25) + 
   scale_x_continuous(limits = c(0, 1000),
                      breaks = seq(0, 1000, 50)) + 
   facet_wrap(~gender)
-
 ```
 
 ***
 
 ### Omitting NA Values
-Notes:
 
 ```{r Omitting NA Values}
 
+# 去除所有性別變量為NA的值
+qplot(x = friend_count, data = subset(pf, !is.na(gender)),
+       binwidth = 10) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
+
+qplot(x = friend_count, data = subset(pf, !is.na(gender)),
+       bins = 200) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
+
+ggplot(aes(x = friend_count), data = subset(pf, !is.na(gender))) + 
+  geom_histogram(binwidth = 10) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
+
+ggplot(aes(x = friend_count), data = subset(pf, !is.na(gender))) + 
+  geom_histogram(bins = 200) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
+```
+
+```{r Omitting NA Values}
+
+# na.omit()會去掉所有含有NA的值
+qplot(x = friend_count, data = na.omit(pf), binwidth = 10) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
 ```
 
 ***
 
 ### Statistics 'by' Gender
-Notes:
 
 ```{r Statistics \'by\' Gender}
+table(pf$gender)
 
+# by()有三個輸入，變量或類別變量、劃分子集的指標列表以及函數
+by(pf$friend_count, pf$gender, summary)
 ```
 
 #### Who on average has more friends: men or women?
@@ -229,10 +264,18 @@ Response:
 ***
 
 ### Tenure
-Notes:
 
 ```{r Tenure}
 
+# 參數 color 決定了圖中對象的輪廓線顏色（color outline）
+# 參數 fill 決定了圖中對象內的區域（area）顏色
+# I() 函數代表“現狀”，並且告訴 qplot 將它們用作顏色。
+# 合理的設定 binwidth = 30，因為30大概是一個月
+qplot(x = tenure, data = pf, binwidth = 30,
+      color = I('black'), fill = '#099DD9')
+
+ggplot(aes(x = tenure), data = pf) +
+   geom_histogram(binwidth = 30, color = 'black', fill = '#099DD9')
 ```
 
 ***
@@ -240,25 +283,51 @@ Notes:
 #### How would you create a histogram of tenure by year?
 
 ```{r Tenure Histogram by Year}
+qplot(x = tenure/365, data = pf, binwidth = .25,
+      color = I('black'), fill = I('#F79420'))
 
+qplot(x = tenure/365, data = pf, binwidth = .25,
+      color = I('black'), fill = I('#F79420')) + 
+  scale_x_continuous(lim = c(0, 7), breaks = seq(1, 7, 1))
+#  scale_x_continuous(limits = c(0, 7), breaks = seq(1, 7, 1))
+
+ggplot(aes(x = tenure/365), data = pf) +
+  geom_histogram(binwidth = .25, color = 'black', fill = '#F79420')
 ```
 
 ***
 
 ### Labeling Plots
-Notes:
 
 ```{r Labeling Plots}
+qplot(x = tenure/365, data = pf, binwidth = .25,
+      xlab = 'Number of years using Facebook',
+      ylab = 'Number of users in sample',
+      color = I('black'), fill = I('#F79420')) + 
+  scale_x_continuous(lim = c(0, 7), breaks = seq(1, 7, 1))
 
+ggplot(aes(x = tenure / 365), data = pf) + 
+  geom_histogram(binwidth = .25, color = 'black', fill = '#F79420') + 
+  scale_x_continuous(breaks = seq(1, 7, 1), limits = c(0, 7)) + 
+  xlab('Number of years using Facebook') + 
+  ylab('Number of users in sample')
 ```
 
 ***
 
 ### User Ages
-Notes:
 
 ```{r User Ages}
+# Find Max Age
+max(pf$age)
 
+qplot(x = age, data = pf, binwidth = 1,
+      color = I('black'), fill = I('#5760AB')) + 
+  scale_x_continuous(breaks = seq(0, 113, 5))
+
+ggplot(aes(x = age), data = pf) + 
+  geom_histogram(binwidth = 1, color = 'black', fill = '#5760AB') + 
+  scale_x_continuous(breaks = seq(0, 113, 5))
 ```
 
 #### What do you notice?
@@ -277,80 +346,229 @@ Notes:
 ***
 
 ### Transforming Data
-Notes:
+Notes: 對 Facebook 數據使用變換變量的 lotta 方法，大多數的數據如好友數、按讚數、評論數、塗鴉牆等都是變量，稱為約束變量（engagement variables），它們都有很長的尾巴。也就是說，有些用戶的按讚數、評論數會比其他用戶高出一個量級。
+在統計學中，我們稱為數據過度離散，通常要對這些值進行變換，才能看到標準偏差或量級，實際上就是在縮短尾巴。
+我們可以通過取對數來變換此變量，使用自然對數、以2或10為底的對數，或者使用其他函數如平方根，這樣可以幫助我們更清晰地看清楚模式，不被長尾分散注意。
+很多統計方法，如線性迴歸，都是基於常態分佈假設，通過對此變量取對數，可以將數據轉換，使其可能變成常態分佈或近似常態分佈。
 
-***
+```{r Transforming Data}
 
-### Add a Scaling Layer
-Notes:
+qplot(x = friend_count, data = pf)
 
-```{r Add a Scaling Layer}
+summary(pf$friend_count)
 
+summary(log10(pf$friend_count))
+# 有些值為負無窮大，因為有些用戶的好友數為0，當取以10為底的0的對數時，值是未定義的，其極限為負無窮大。
+
+# tenfold scale like the pH scale
+summary(log10(pf$friend_count + 1))
+
+summary(sqrt(pf$friend_count))
 ```
 
 ***
 
+### Add a Scaling Layer
+
+```{r Add a Scaling Layer}
+
+# install.packages('gridExtra')
+library(gridExtra)
+
+# qplot()
+p1 <- qplot(x = friend_count, data = pf)
+p2 <- qplot(x = log10(friend_count + 1), data = pf)
+p3 <- qplot(x = sqrt(friend_count), data = pf)
+
+grid.arrange(p1, p2, p3, ncol = 1)
+
+
+# ggplot()
+p1 <- ggplot(aes(x = friend_count), data = pf) + geom_histogram()
+p2 <- p1 + scale_x_log10()
+p3 <- p1 + scale_x_sqrt()
+
+grid.arrange(p1, p2, p3, ncol = 1)
+```
+
+```{r}
+# x軸使用對數為單位
+logScale <- qplot(x = log10(friend_count), data = pf)
+
+# xlab = friend_count
+countScale <- ggplot(aes(x = friend_count), data = pf) + 
+  geom_histogram() + 
+  scale_x_log10()
+
+grid.arrange(logScale, countScale, ncol = 2)
+
+qplot(x = friend_count, data = pf) + 
+  scale_x_log10()
+```
+
+***
 
 ### Frequency Polygons
 
 ```{r Frequency Polygons}
 
+p1 <- qplot(x = friend_count,
+            data = subset(pf, !is.na(gender)),
+           # xlab('Friend Count'),
+           # ylab('Percentage of users with that friend count'),
+            binwidth = 10) + 
+  scale_x_continuous(lim = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
+
+p2 <- qplot(x = friend_count,
+            y = ..count../sum(..count..),
+            data = subset(pf, !is.na(gender)),
+           # xlab('Friend Count'),
+           # ylab('Percentage of users with that friend count'), 
+            binwidth = 10, geom = 'freqpoly', color = gender) + 
+  scale_x_continuous(lim = c(0, 1000), breaks = seq(0, 1000, 50))
+
+grid.arrange(p1, p2, ncol = 1)
+
+ggplot(aes(x = friend_count, y = ..count../sum(..count..)),
+       data = subset(pf, !is.na(gender))) + 
+  geom_freqpoly(aes(color = gender), binwidth=10) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  xlab('Friend Count') + 
+  ylab('Percentage of users with that friend count')
+
+# ..density..
+ggplot(aes(x = friend_count, y = ..density..),
+       data = subset(pf, !is.na(gender))) + 
+  geom_freqpoly(aes(color = gender), binwidth=10) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  xlab('Friend Count') + 
+  ylab('Percentage of users with that friend count')
 ```
 
 ***
 
 ### Likes on the Web
-Notes:
+Notes: 使用頻數多邊形確定哪個性別在網頁上獲得的點讚數更多。
 
 ```{r Likes on the Web}
+qplot(x = www_likes, data = subset(pf, !is.na(gender)),
+      geom = 'freqpoly', color = gender) + 
+  scale_x_log10()
 
+ggplot(aes(x = www_likes), data = subset(pf, !is.na(gender))) + 
+  geom_freqpoly(aes(color = gender)) + 
+  scale_x_log10()
+
+
+qplot(x = www_likes, data = subset(pf, !is.na(gender)),
+      geom = 'freqpoly', color = gender) + 
+  scale_x_continuous() + 
+  scale_x_log10()
+
+by(pf$www_likes, pf$gender, sum)
 ```
-
 
 ***
 
 ### Box Plots
-Notes:
 
 ```{r Box Plots}
+
+# Histograms
+qplot(x = friend_count,
+      data = subset(pf, !is.na(gender)),
+      binwidth = 25) + 
+  scale_x_continuous(lim = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
+
+# Box Plots
+qplot(x = gender,        # 類別變量
+      y = friend_count,  # 連續變量
+      data = subset(pf, !is.na(gender)),
+      geom = 'boxplot')
+
+# 離群值位於中位數IOR的1.5倍之外
 
 ```
 
 #### Adjust the code to focus on users who have friend counts between 0 and 1000.
 
 ```{r}
+qplot(x = gender,
+      y = friend_count,
+      data = subset(pf, !is.na(gender)),
+      geom = 'boxplot',
+      ylim = c(0, 1000))
 
+qplot(x = gender,
+      y = friend_count,
+      data = subset(pf, !is.na(gender)),
+      geom = 'boxplot') + 
+  scale_y_continuous(limits = c(0, 1000))
+
+# The Best 
+qplot(x = gender,
+      y = friend_count,
+      data = subset(pf, !is.na(gender)),
+      geom = 'boxplot') + 
+  coord_cartesian(ylim = c(0, 1000))
 ```
 
 ***
 
 ### Box Plots, Quartiles, and Friendships
-Notes:
 
 ```{r Box Plots, Quartiles, and Friendships}
+qplot(x = gender,
+      y = friend_count,
+      data = subset(pf, !is.na(gender)),
+      geom = 'boxplot') + 
+  coord_cartesian(ylim = c(0, 250))
+
+by(pf$friend_count, pf$gender, summary)
+
+# 25%的女性好友數大於244人
 
 ```
 
 #### On average, who initiated more friendships in our sample: men or women?
-Response:
+Response: women
 #### Write about some ways that you can verify your answer.
 Response:
 ```{r Friend Requests by Gender}
+qplot(x = gender, y = friendships_initiated,
+      data = subset(pf, !is.na(gender)), geom = 'boxplot') + 
+  coord_cartesian(ylim = c(0, 150))
 
+by(pf$friendships_initiated, pf$gender, summary)
 ```
-
-Response:
 
 ***
 
 ### Getting Logical
-Notes:
 
 ```{r Getting Logical}
 
-```
+summary(pf$mobile_likes)
+# 用戶使用手機登陸的次數可能無關緊要，但是該用戶是否曾經使用過是重要的。
+# 由summary得知中位數為4，意味有很多的0。
 
-Response:
+# 設置比較運算符，得知某個用戶是否實際登錄了
+summary(pf$mobile_likes > 0)
+
+mobile_check_in <- NA
+# 如果用戶有登錄過設置為1，沒有則設為0
+pf$mobile_check_in <- ifelse(pf$mobile_likes > 0, 1, 0)
+pf$mobile_check_in <- factor(pf$mobile_check_in)
+
+summary(pf$mobile_check_in)
+# 約有64000人使用過手機登陸
+
+sum(pf$mobile_check_in == 0) / length(pf$mobile_check_in)
+sum(pf$mobile_check_in == 1) / length(pf$mobile_check_in)
+
+```
 
 ***
 
@@ -358,6 +576,3 @@ Response:
 Reflection:
 
 ***
-
-Click **KnitHTML** to see all of your hard work and to have an html
-page of this lesson, your answers, and your notes!
