@@ -210,7 +210,6 @@ ggplot(aes(x = friend_count), data = pf) +
 ### Omitting NA Values
 
 ```{r Omitting NA Values}
-
 # 去除所有性別變量為NA的值
 qplot(x = friend_count, data = subset(pf, !is.na(gender)),
        binwidth = 10) + 
@@ -234,7 +233,6 @@ ggplot(aes(x = friend_count), data = subset(pf, !is.na(gender))) +
 ```
 
 ```{r Omitting NA Values}
-
 # na.omit()會去掉所有含有NA的值
 qplot(x = friend_count, data = na.omit(pf), binwidth = 10) + 
   scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
@@ -266,7 +264,6 @@ Response:
 ### Tenure
 
 ```{r Tenure}
-
 # 參數 color 決定了圖中對象的輪廓線顏色（color outline）
 # 參數 fill 決定了圖中對象內的區域（area）顏色
 # I() 函數代表“現狀”，並且告訴 qplot 將它們用作顏色。
@@ -352,7 +349,6 @@ Notes: 對 Facebook 數據使用變換變量的 lotta 方法，大多數的數�
 很多統計方法，如線性迴歸，都是基於常態分佈假設，通過對此變量取對數，可以將數據轉換，使其可能變成常態分佈或近似常態分佈。
 
 ```{r Transforming Data}
-
 qplot(x = friend_count, data = pf)
 
 summary(pf$friend_count)
@@ -371,7 +367,6 @@ summary(sqrt(pf$friend_count))
 ### Add a Scaling Layer
 
 ```{r Add a Scaling Layer}
-
 # install.packages('gridExtra')
 library(gridExtra)
 
@@ -411,7 +406,6 @@ qplot(x = friend_count, data = pf) +
 ### Frequency Polygons
 
 ```{r Frequency Polygons}
-
 p1 <- qplot(x = friend_count,
             data = subset(pf, !is.na(gender)),
            # xlab('Friend Count'),
@@ -474,7 +468,6 @@ by(pf$www_likes, pf$gender, sum)
 ### Box Plots
 
 ```{r Box Plots}
-
 # Histograms
 qplot(x = friend_count,
       data = subset(pf, !is.na(gender)),
@@ -489,7 +482,6 @@ qplot(x = gender,        # 類別變量
       geom = 'boxplot')
 
 # 離群值位於中位數IOR的1.5倍之外
-
 ```
 
 #### Adjust the code to focus on users who have friend counts between 0 and 1000.
@@ -529,7 +521,6 @@ qplot(x = gender,
 by(pf$friend_count, pf$gender, summary)
 
 # 25%的女性好友數大於244人
-
 ```
 
 #### On average, who initiated more friendships in our sample: men or women?
@@ -549,7 +540,6 @@ by(pf$friendships_initiated, pf$gender, summary)
 ### Getting Logical
 
 ```{r Getting Logical}
-
 summary(pf$mobile_likes)
 # 用戶使用手機登陸的次數可能無關緊要，但是該用戶是否曾經使用過是重要的。
 # 由summary得知中位數為4，意味有很多的0。
@@ -567,7 +557,6 @@ summary(pf$mobile_check_in)
 
 sum(pf$mobile_check_in == 0) / length(pf$mobile_check_in)
 sum(pf$mobile_check_in == 1) / length(pf$mobile_check_in)
-
 ```
 
 ***

@@ -24,13 +24,19 @@ Subset the data so that you create a new data frame that contains
 cars that get 23 or more mpg (miles per gallon). Save it to a new data
 frame called efficient.
 ```{r}
+efficient <- subset(mtcars, mpg >= 23)
 
+efficient2 <- mtcars[mtcars$mpg >= 23,]
 ```
 
 3. How many cars get more than 23 mpg? Use one of the commands you
 learned in the demystifying.R to answer this question.
 ```{r}
+nrow(efficient)
 
+nrow(efficient2)
+
+row.names(efficient)
 ```
 
 4. We can also use logical operators to find out which car(s) get greater
@@ -51,11 +57,6 @@ operator AND. It also uses one | for the logical operator OR.
 
 
 
-
-
-
-
-
 The command above creates a data frame of cars that have mpg less than 14
 OR a displacement of more than 390. Only one of the conditions for a car
 needs to be satisfied so that the car makes it into the subset. Any of the
@@ -66,12 +67,13 @@ Now you try some.
 6. Print the cars that have a 1/4 mile time (qsec) less than or equal to
 16.90 seconds to the console.
 ```{r}
-
+subset(mtcars, qsec <= 16.9)
 ```
 
 7. Save the subset of cars that weigh under 2000 pounds (weight is measured in lb/1000) to a variable called lightCars. Print the numbers of cars and the subset to the console.
 ```{r}
-
+lightCars <- mtcars[mtcars$wt < 2.0,]
+lightCars
 ```
 
 8. You can also create new variables in a data frame. Let's say you wanted
@@ -103,7 +105,7 @@ Open the table of values to see what values year takes on.
 
 Drop the year variable from the data set.
 ```{r}
-
+mtcars <- subset(mtcars, select = -year)
 ```
 
 
@@ -118,10 +120,13 @@ to keep going in this course. We just want you to try to get familiar with
 more code.
 ```{r}
 mtcars$wt
+
 cond <- mtcars$wt < 3
 cond
+
 mtcars$weight_class <- ifelse(cond, 'light', 'average')
 mtcars$weight_class
+
 cond <- mtcars$wt > 3.5
 mtcars$weight_class <- ifelse(cond, 'heavy', mtcars$weight_class)
 mtcars$weight_class
@@ -145,7 +150,7 @@ this class and submit the the Rmd file and html file. You'll need the
 knitr package to do that so let's install that now. Run these two lines
 of code.
 ```{r}
-install.packages('knitr', dependencies = T)
+# install.packages('knitr', dependencies = T)
 library(knitr)
 ```
 
