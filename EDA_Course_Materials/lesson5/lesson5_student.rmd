@@ -2,162 +2,237 @@ Lesson 5
 ========================================================
 
 ### Multivariate Data
-Notes:
+```{r}
+pf <- read.delim('../lesson3/pseudo_facebook.tsv')
+```
 
 ***
 
 ### Moira Perceived Audience Size Colored by Age
-Notes:
+```{r}
+library(ggplot2)
+
+qplot(x = friend_count, data = na.omit(pf), binwidth = 10) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) + 
+  facet_wrap(~gender)
+```
 
 ***
 
 ### Third Qualitative Variable
-Notes:
+```stat = "identity"``` 使ggplot直接取用count欄位當成高度，不用再數資料的個數。
 
 ```{r Third Qualitative Variable}
 ggplot(aes(x = gender, y = age),
-       data = subset(pf, !is.na(gender))) + geom_histogram()
+       data = subset(pf, !is.na(gender))) + 
+  geom_histogram(stat = "identity")
+  # geom_bar(stat = "identity")
+
+ggplot(aes(x = gender, y = age),
+       data = subset(pf, !is.na(gender))) + 
+  geom_boxplot() + 
+  stat_summary(fun.y = mean, geom = "point", shape = 4)  # 標記平均值
+
+ggplot(aes(x = age, y = friend_count),
+       data = subset(pf, !is.na(gender))) + 
+  geom_line(aes(color = gender), stat = "summary", fun.y = median)
+```
+
+```{r}
+suppressMessages(library(dplyr))
+
+# chain functions together %>%
+pf.fc_by_age_gender <- pf %>% 
+  filter(!is.na(gender)) %>%   # or use subset(pf, !is.na(gender))
+  group_by(age, gender) %>%
+  summarise(mean_friend_count = mean(friend_count),
+            median_friend_count = median(friend_count),
+            n = n()) %>%
+  ungroup() %>%
+  arrange(age)
+
+head(pf.fc_by_age_gender)
 ```
 
 ***
 
 ### Plotting Conditional Summaries
-Notes:
 
 ```{r Plotting Conditional Summaries}
-
+ggplot(aes(x = age, y = median_friend_count), 
+           data = pf.fc_by_age_gender) + 
+  geom_line(aes(color = gender))
 ```
-
-***
-
-### Thinking in Ratios
-Notes:
-
-***
-
-### Wide and Long Format
-Notes:
 
 ***
 
 ### Reshaping Data
-Notes:
 
-```{r}
-install.packages('reshape2')
-library(reshape2)
+```{r Reshaping Data}
+# install.packages("tidyr")
+library(tidyr)
+spread(subset(pf.fc_by_age_gender,
+              select = c('gender', 'age', 'median_friend_count')),
+       gender,
+       median_friend_count)
 ```
 
+```dcast()```: Convert long format to wide format
+```melt()```: Convert the Y data back to the original long format
+
+```{r Reshaping Data}
+# install.packages('reshape2')
+library(reshape2)
+
+pf.fc_by_age_gender.wide <- dcast(pf.fc_by_age_gender,
+                                  age ~ gender,
+                                  value.var = "median_friend_count")
+head(pf.fc_by_age_gender.wide)
+```
+
+```{r Ratio}
+subset(pf.fc_by_age_gender[c('age', 'gender', 'median_friend_count')],
+       !is.na(gender)) %>%
+  spread(gender, median_friend_count) %>%
+  mutate(ratio = female / male)
+```
 
 ***
 
 ### Ratio Plot
-Notes:
 
 ```{r Ratio Plot}
-
+ggplot(aes(x = age, y = female / male),
+       data = pf.fc_by_age_gender.wide) + 
+  geom_line() + 
+  geom_hline(yintercept = 1, alpha = 0.5, linetype = 2) # 截距(yintercept)為1
 ```
 
 ***
 
 ### Third Quantitative Variable
-Notes:
+```floor()```: 無條件捨去
+```ceiling()```:  無條件進位
 
 ```{r Third Quantitative Variable}
-
+pf$year_joined <- floor(2014 - pf$tenure / 365)
 ```
 
 ***
 
 ### Cut a Variable
-Notes:
+
+```cut()``` 對於從連續或數值變量建立離散變量時非常有用，有時會與分位數函數結合。
 
 ```{r Cut a Variable}
+summary(pf$year_joined)
+table(pf$year_joined)
 
+pf$year_joined.bucket <- cut(pf$year_joined,
+                             breaks = c(2004, 2009, 2011, 2012, 2014))
+table(pf$year_joined.bucket, useNA = "ifany")
 ```
 
 ***
 
 ### Plotting it All Together
-Notes:
 
 ```{r Plotting it All Together}
-
+ggplot(aes(x = age, y = friend_count), 
+              data = subset(pf, !is.na(year_joined.bucket))) + 
+  geom_line(aes(color = year_joined.bucket),
+            stat = 'summary',
+            fun.y = median)
 ```
 
 ***
 
 ### Plot the Grand Mean
-Notes:
 
 ```{r Plot the Grand Mean}
-
+ggplot(aes(x = age, y = friend_count), 
+              data = subset(pf, !is.na(year_joined.bucket))) + 
+  geom_line(aes(color = year_joined.bucket),
+            stat = 'summary',
+            fun.y = mean) + 
+  geom_line(stat = 'summary', fun.y = mean, linetype = 2)
 ```
 
 ***
 
 ### Friending Rate
-Notes:
 
 ```{r Friending Rate}
-
+with(subset(pf, tenure >= 1),         # 至少註冊一天的用戶
+     summary(friend_count / tenure))  # 每天的好友數
 ```
 
 ***
 
 ### Friendships Initiated
-Notes:
-
-What is the median friend rate?
-
-What is the maximum friend rate?
 
 ```{r Friendships Initiated}
-
+ggplot(aes(x = tenure, y = friendships_initiated / tenure),
+       data = subset(pf, tenure >= 1)) + 
+  geom_line(aes(color = year_joined.bucket),
+            stat = 'summary',
+            fun.y = mean)
 ```
 
 ***
 
 ### Bias-Variance Tradeoff Revisited
-Notes:
+將ggplot的```x = tenure```替換為```x = 7 * round(tenure / 7)```等，通過```round()```的分母將數值分箱，然後轉換回前面帶有常量的自然標尺。
 
 ```{r Bias-Variance Tradeoff Revisited}
-
-ggplot(aes(x = tenure, y = friendships_initiated / tenure),
-       data = subset(pf, tenure >= 1)) +
+p1 <- ggplot(aes(x = tenure, y = friendships_initiated / tenure),
+             data = subset(pf, tenure >= 1)) +
   geom_line(aes(color = year_joined.bucket),
             stat = 'summary',
             fun.y = mean)
 
-ggplot(aes(x = 7 * round(tenure / 7), y = friendships_initiated / tenure),
-       data = subset(pf, tenure > 0)) +
+p2 <- ggplot(aes(x = 7 * round(tenure / 7), y = friendships_initiated / tenure),
+             data = subset(pf, tenure > 0)) +
   geom_line(aes(color = year_joined.bucket),
             stat = "summary",
             fun.y = mean)
 
-ggplot(aes(x = 30 * round(tenure / 30), y = friendships_initiated / tenure),
-       data = subset(pf, tenure > 0)) +
+p3 <- ggplot(aes(x = 30 * round(tenure / 30), y = friendships_initiated / tenure),
+             data = subset(pf, tenure > 0)) +
   geom_line(aes(color = year_joined.bucket),
             stat = "summary",
             fun.y = mean)
 
-ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
-       data = subset(pf, tenure > 0)) +
+p4 <- ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
+             data = subset(pf, tenure > 0)) +
   geom_line(aes(color = year_joined.bucket),
             stat = "summary",
             fun.y = mean)
 
+library(gridExtra)
+grid.arrange(p1, p2, p3, p4, ncol = 1)
+```
+
+```{r Bias-Variance Tradeoff Revisited}
+ggplot(aes(x = tenure, y = friendships_initiated / tenure),
+       data = subset(pf, tenure >= 1)) + 
+  geom_line(aes(color = year_joined.bucket),
+            stat = 'summary',
+            fun.y = mean) + 
+  geom_smooth()
+
+ggplot(aes(x = tenure, y = friendships_initiated / tenure),
+       data = subset(pf, tenure >= 1)) + 
+  geom_smooth(aes(color = year_joined.bucket))
 ```
 
 ***
 
-### Sean's NFL Fan Sentiment Study
-Notes:
-
-***
-
 ### Introducing the Yogurt Data Set
-Notes:
+
+```{r}
+read.delim('../lesson5/yogurt.tsv')
+```
 
 ***
 
@@ -247,7 +322,3 @@ ggplot(aes(y = gene, x = case, fill = value),
 Reflection:
 
 ***
-
-Click **KnitHTML** to see all of your hard work and to have an html
-page of this lesson, your answers, and your notes!
-
