@@ -1,5 +1,8 @@
 Lesson 4
+Analyzing Two Variables
 ========================================================
+
+散布圖、條件總匯、相關性的優勢及侷限，並透過調整視覺化來理解數據。
 
 ***
 
@@ -453,10 +456,5 @@ p3 <- ggplot(aes(x = round(age / 5) * 5, y = friend_count),
 library(gridExtra)
 grid.arrange(p2, p1, p3, ncol = 1)
 ```
-
-***
-
-### Analyzing Two Variables
-Reflection: 散布圖、條件總匯、相關性的優勢及侷限，並透過調整視覺化來理解數據。
 
 ***

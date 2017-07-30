@@ -1,4 +1,5 @@
 Lesson 5
+Analyzing Three of More Variables
 ========================================================
 
 ### Multivariate Data
@@ -231,94 +232,145 @@ ggplot(aes(x = tenure, y = friendships_initiated / tenure),
 ### Introducing the Yogurt Data Set
 
 ```{r}
-read.delim('../lesson5/yogurt.tsv')
+yo <- read.csv('../lesson5/yogurt.csv')
+str(yo)
+
+yo$id <- factor(yo$id)
+str(yo)
 ```
 
 ***
 
 ### Histograms Revisited
-Notes:
 
 ```{r Histograms Revisited}
+qplot(x = price, data = yo,
+      fill = I("#F79420"), binwidth = 10)
 
+ggplot(aes(x = price), data = yo) + 
+  geom_histogram(fill = I("#F79420"), binwidth = 10)
 ```
 
 ***
 
 ### Number of Purchases
-Notes:
 
 ```{r Number of Purchases}
+summary(yo)
+length(unique(yo$price))
+table(yo$price)
 
+str(yo)
+
+# ?transform
+yo <- transform(yo, all.purchases = strawberry + blueberry + pina.colada + plain + mixed.berry)
+summary(yo$all.purchases)
+
+yo$all.purchases <- yo$strawberry + yo$blueberry + yo$pina.colada + yo$plain + yo$mixed.berry
+summary(yo$all.purchases)
 ```
 
 ***
 
 ### Prices over Time
-Notes:
 
 ```{r Prices over Time}
+qplot(x = all.purchases, data = yo,
+      binwidth = 1,
+      fill = I("#099DD9"))
 
+ggplot(aes(all.purchases), data = yo) + 
+  geom_histogram(binwidth = 1, fill = I("#099DD9"))
+```
+
+```{r}
+ggplot(aes(x = time, y = price), data = yo) + 
+  geom_jitter(alpha = 1/4, shape = 21, fill = I("#F79420"))
 ```
 
 ***
 
 ### Sampling Observations
-Notes:
+常見的價格似乎隨著時間推移而增加，圖表上散佈的一些較低價格點，可能是因為促銷或優惠券。
+
+此數據集最初用於建立消費者對於品種的偏好模型。在建模前，需要觀察家庭購買優格的頻率、購買多件物品的頻率和優格的價格。
+一種方法是詳細地調查一些子樣本，接下來會隨機選擇16個家庭並觀察。
 
 ***
 
 ### Looking at Samples of Households
+```x %in% y```會傳回一個長度與x相同的布林向量，該向量指出x中的每一個條目是否都出現在y中。
+也就是說，對於x中的每一個條目，該向量都會檢查這一條目是否也出現在y中。
 
 ```{r Looking at Sample of Households}
+set.seed(4230)
+sample.ids <- sample(levels(yo$id), 16)
 
+ggplot(aes(x = time, y = price),
+       data = subset(yo, id %in% sample.ids)) + 
+  facet_wrap( ~ id) + 
+  geom_line() + 
+  geom_point(aes(size = all.purchases), pch = 1)
+  # geom_point(aes(size = all.purchases), shape = 1)
 ```
-
-***
-
-### The Limits of Cross Sectional Data
-Notes:
-
-***
-
-### Many Variables
-Notes:
 
 ***
 
 ### Scatterplot Matrix
-Notes:
+```proc.time()```以秒為單位計算R執行程序的時間。其中user為執行時間；system為CPU時間；elapse則等同於Sys.time()，也就是user + system = elapse。
 
-***
+```{r}
+# install.packages('GGally')
+library(GGally)
+theme_set(theme_minimal(20))
 
-### Even More Variables
-Notes:
+# set the seed for reproducible results
+set.seed(1836)
+pf_subset <- pf[, c(2:15)]
+names(pf_subset)
+
+# Save to scatterplotMatrix.pdf
+ptm <- proc.time()
+ggpairs(pf_subset[sample.int(nrow(pf_subset), 1000), ])
+proc.time() - ptm
+```
 
 ***
 
 ### Heat Maps
-Notes:
+[微陣列/基因表達數據](https://s3.amazonaws.com/udacity-hosted-downloads/ud651/nci.tsv)
 
 ```{r}
 nci <- read.table("nci.tsv")
+names(nci)
+
+# Changing the colnames to produce a nicer plot
 colnames(nci) <- c(1:64)
+names(nci)
 ```
 
-```{r}
-nci.long.samp <- melt(as.matrix(nci[1:200,]))
+我們希望顯示基因與樣本的每個組合，基因表達(gene expression)的差異和基線(base line)樣品。
+
+```{r Heat Maps}
+nci.long.samp <- melt(as.matrix(nci[1:200, ]))  # First 200 genes
 names(nci.long.samp) <- c("gene", "case", "value")
 head(nci.long.samp)
 
 ggplot(aes(y = gene, x = case, fill = value),
-  data = nci.long.samp) +
-  geom_tile() +
+       data = nci.long.samp) + 
+  geom_tile() + 
   scale_fill_gradientn(colours = colorRampPalette(c("blue", "red"))(100))
 ```
 
+```{r}
+nci.long.samp_big <- melt(as.matrix(nci))
+names(nci.long.samp_big) <- c("gene", "case", "value")
+head(nci.long.samp_big)
 
-***
-
-### Analyzing Three of More Variables
-Reflection:
+ggplot(aes(y = gene, x = case, fill = value),
+       data = nci.long.samp_big) + 
+  geom_tile() + 
+  scale_fill_gradientn(colours = colorRampPalette(c("blue", "red"))(100))
+```
 
 ***
